@@ -22,31 +22,37 @@ exports.create = (text, callback) => {
 
 exports.readAll = (callback) => {
   fs.readdir(this.dataDir, (err, files) => {
-    var results = [];
+    //create promises of each file
+    //push into array
+    //then run promise.all
+    //do heavy work
+    const results = [];
+    const finalResults = [];
 
     for (var i = 0; i < files.length; i++) {
-      var newObj = {}
-      newObj.id = files[i].slice(0,5);
-      newObj.text = files[i].slice(0,5);
-      results.push(newObj);
+      results.push(exports.readOne(files[i].slice(0,5)));
     }
-    callback(null, results);
-  })
+
+    Promise.all(results).then(function(values) {
+      for (let i = 0; i < files.length; i++) {
+        finalResults.push({id: files[i].slice(0,5), text: values[i].toString()})
+      }
+      callback(null, finalResults);
+    });
+  });
+
 };
 
 exports.readOne = (id, callback) => {
   var filePath = path.join(this.dataDir, `${id}.txt`);
-
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      callback(err);
-    } else {
-      var result = {
-        id: id,
-        text: data.toString()
-      };
-      callback(null, result);
-    }
+  return new Promise(function(resolve, reject) {
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
   });
 };
 
@@ -141,4 +147,38 @@ exports.initialize = () => {
 //   } else {
 //     callback();
 //   }
+// };
+
+
+
+
+// exports.readOne = (id, callback) => {
+//   var filePath = path.join(this.dataDir, `${id}.txt`);
+
+//   fs.readFile(filePath, (err, data) => {
+//     if (err) {
+//       callback(err);
+//     } else {
+//       var result = {
+//         id: id,
+//         text: data.toString()
+//       };
+//       callback(null, result);
+//     }
+//   });
+// };
+
+
+// exports.readAll = (callback) => {
+//   fs.readdir(this.dataDir, (err, files) => {
+//     var results = [];
+
+//     for (var i = 0; i < files.length; i++) {
+//       var newObj = {}
+//       newObj.id = files[i].slice(0,5);
+//       newObj.text = files[i].slice(0,5);
+//       results.push(newObj);
+//     }
+//     callback(null, results);
+//   })
 // };
